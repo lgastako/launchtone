@@ -1,14 +1,25 @@
 # launchtone
 
-A Clojure library designed to ... well, that part is up to you.
+A Clojure library for interacting with the Launchpad S from Overtone.
+
+## Installation
+
+Add the following to your project.clj:
+
+   [[launchtone "0.1.0-SNAPSHOT"]]
 
 ## Usage
 
-FIXME
+   (ns example
+      (:use [launchtone.core :only [make-app set-color!]]
+            [launchtone.demos :only [xmas-tree!]))
+
+   (def app (make-app))
+
+   (set-color! app 0 0 :r)
+
+   (xmas-tree! app)
 
 ## License
 
-Copyright © 2013 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Public Domain.

@@ -1,7 +1,5 @@
 (ns launchtone.core-test
-  (:require [clojure.test :refer :all]
-            [launchtone.core :refer :all]))
+  (:use [clojure.test :only [deftest testing is]]
+;;        [launchtone.core :only []]
+        ))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))

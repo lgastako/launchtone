@@ -1,3 +1,3 @@
 # Introduction to launchtone
 
-TODO: write [great documentation](http://jacobian.org/writing/great-documentation/what-to-write/)
+Coming soon. [great documentation](http://jacobian.org/writing/great-documentation/what-to-write/)

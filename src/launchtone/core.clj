@@ -1,6 +1,5 @@
-(ns launchtone.core)
+(ns launchtone.core
+  (:use [launchtone.app :only [make-app]])
+  (:require [overtone.config.log :as log]))
 
-(defn foo
-  "I don't do a whole lot."
-  [x]
-  (println x "Hello, World!"))
+(log/set-level! :debug)
