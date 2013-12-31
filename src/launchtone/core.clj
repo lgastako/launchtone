@@ -124,11 +124,11 @@
     (let [[row col] (note->point (m :note))]
       (f row col event-type m))))
 
-(defn on-button-down [app f]
-  (on-event [:midi :note-on] (handle-button-event app f :down)))
+(defn on-button-down [app f key]
+  (on-event [:midi :note-on] (handle-button-event app f :down) key))
 
-(defn on-button-up [app f]
-  (on-event [:midi :note-off] (handle-button-event app f :up)))
+(defn on-button-up [app f key]
+  (on-event [:midi :note-off] (handle-button-event app f :up) key))
 
 (def on-button on-button-up)
 
