@@ -6,19 +6,23 @@ A Clojure library for interacting with the Launchpad S from Overtone.
 
 Add the following to your project.clj:
 
-   [[launchtone "0.1.0-SNAPSHOT"]]
+```clojure
+[[launchtone "0.1.0-SNAPSHOT"]]
+```
 
 ## Usage
 
-   (ns example
-      (:use [launchtone.core :only [make-app set-color!]]
-            [launchtone.demos :only [xmas-tree!]))
+```clojure
+(ns example
+   (:use [launchtone.core :only [make-app set-color!]]
+         [launchtone.demos :only [xmas-tree!]))
 
-   (def app (make-app))
+(def app (make-app))
 
-   (set-color! app 0 0 :r)
+(set-color! app 0 0 :r)
 
-   (xmas-tree! app)
+(xmas-tree! app)
+```
 
 ## License
 
