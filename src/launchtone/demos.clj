@@ -1,7 +1,7 @@
 (ns launchtone.demos
-  (:use [overtone.at-at :only [after]]
-        [launchtone.app :only [make-app set-board! get-redgreen set-spot-color! buffering-on!]]
+  (:use [launchtone.core :only [make-app set-board! get-redgreen set-spot-color! buffering-on!]]
         [launchtone.board :only [all-spots]]
+        [launchtone.cron :only [every after]]
         [launchtone.utils :only [debug]]))
 
 (def xmas-tree-board
@@ -53,7 +53,7 @@
                   (set-spot-color! app r c color)
                   (debug "color set, sched next")
                   (debug "remaining " remaining)
-    ;;              (after interval #(finish-cycle! remaining) :blah)
+    ;;              (after app interval #(finish-cycle! remaining))
                   (finish-cycle! remaining)
                   ))
               (debug "no more vals in cycle"))]
@@ -94,20 +94,46 @@
   ([]
      (with-app smiley!)))
 
-(defn both!
-  [app]
-  (let [scenes (cycle [xmas-tree! smiley!])]
-    (loop [scene! (first scenes)]
-      (scene! app)
-      (Thread/sleep 1000)
-      (recur (rest scenes)))))
+(defn scrolled-row
+  [row]
+;; TODO figure out idiom
+;;  (conj (rest row) (first row))
+  (concat (into [] (rest row)) [(first row)])
+  )
 
-(defn start-app!
-  []
-  (let [app (make-app)]
-;;    (buffering-on! app)
-    (xmas-tree! app)
-    app))
+(assert (= [:b :c :a] (scrolled-row [:a :b :c])))
+(scrolled-row [:a :b :c])
+
+(defn scrolled-board
+  [board]
+  (debug "scrolled-board..." board)
+  (let [res (map scrolled-row board)]
+    (debug "sb.res " res)
+    res))
+
+(defn scroll!
+  [app]
+  (debug "scroll! " app)
+  (let [board (@app :board)]
+    (debug "board " board))
+  (letfn [(updater [old-app]
+            (debug "in updater")
+            (let [res (update-in old-app [:board] scrolled-board)]
+              (debug "res " res)
+              res))]
+    (debug "in let")
+    (swap! app updater)))
+
+(defn scroll-smiley!
+  ([app]
+     ;; replace this with #(scroll! app) except that works
+     (letfn [(tmp-update []
+               (debug "tmp-update")
+               (scroll! app))]
+       (smiley! app)
+       (every app 100 #(scroll! app))))
+  ([]
+     (with-app scroll-smiley!)))
 
 (defn -main []
   (debug "main beginning...")

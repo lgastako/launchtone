@@ -1,10 +1,10 @@
 (ns launchtone.app-test
   (:use [clojure.test :only [deftest testing is]]
-        [launchtone.app :only [assoc-board
-                               get-color
-                               get-redgreen
-                               make-app
-                               set-spot-color!]]))
+        [launchtone.core :only [assoc-board
+                                get-color
+                                get-redgreen
+                                make-app
+                                set-spot-color!]]))
 
 (deftest test-make-app
   (testing "Creation of an application.ck"
