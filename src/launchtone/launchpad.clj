@@ -1,10 +1,5 @@
 (ns launchtone.launchpad)
 
-(def brightness-off 0x00)
-(def brightness-min 0x01)
-(def brightness-mid 0x02)
-(def brightness-max 0x03)
-
 (defn point->note
   "Convert a column-row vector into the appropriate note to send to the Launchpad."
   [col row]

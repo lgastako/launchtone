@@ -1,7 +1,6 @@
 (ns launchtone.app-test
   (:use [clojure.test :only [deftest testing is]]
         [launchtone.app :only [assoc-board
-                               board->colors
                                get-color
                                get-redgreen
                                make-app
@@ -17,13 +16,6 @@
       (is (contains? app :worker-pool))
       (is (contains? app :buffer))
       (is (contains? app :board)))))
-
-(deftest test-board->colors
-  (testing "Color selection of board->colors"
-    (is (= [[[0 0] [3 0]]
-            [[0 3] [0 0]]]
-           (board->colors [[:e :r]
-                           [:g :e]])))))
 
 (deftest test-assoc-board
   (testing "Association of a new board to an app."

@@ -1,7 +1,7 @@
 (ns launchtone.demos
   (:use [overtone.at-at :only [after]]
-        [launchtone.app :only [make-app set-board! all-spots get-redgreen set-spot-color!]]
-        [launchtone.buffering :only [buffering-on!]]
+        [launchtone.app :only [make-app set-board! get-redgreen set-spot-color! buffering-on!]]
+        [launchtone.board :only [all-spots]]
         [launchtone.utils :only [debug]]))
 
 (def xmas-tree-board

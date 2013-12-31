@@ -1,44 +1,14 @@
 (ns launchtone.app
   (:use [overtone.live :only [midi-note-on midi-mk-full-device-key on-event]]
         [overtone.at-at :only [mk-pool]]
-        [clojure.math.combinatorics :only [cartesian-product]]
-        [launchtone.launchpad :only [brightness-off brightness-min brightness-mid brightness-max
-                                     point->note note->point colors->velocity]]
+        [subwatch.core :only [add-sub-watch]]
+        [launchtone.board :only [empty-board]]
+        [launchtone.buffering :only [send-flip-buffer! send-buffer-msg! buffer-0 buffer-none]]
+        [launchtone.colors :only [brightness-off brightness-min brightness-mid brightness-max
+                                  color-map board->colors]]
         [launchtone.devices :only [select-transmitter-and-receiver]]
-        [launchtone.buffering :only [buffering-on?]]
+        [launchtone.launchpad :only [point->note note->point colors->velocity]]
         [launchtone.utils :only [enumerate debug set-level!]]))
-
-(def all-spots (cartesian-product
-                (range 8)
-                (range 8)))
-
-(def empty-row (into [] (take 8 (repeat :e))))
-(def empty-board (into [] (take 8 (repeat empty-row))))
-
-(def color-map {:e [brightness-off brightness-off]
-                :r [brightness-max brightness-off]
-                :g [brightness-off brightness-max]
-                :y [brightness-max brightness-max]
-                :r0g0 [brightness-off brightness-off]
-                :r0g1 [brightness-off brightness-min]
-                :r0g2 [brightness-off brightness-mid]
-                :r0g3 [brightness-off brightness-max]
-                :r1g0 [brightness-min brightness-off]
-                :r1g1 [brightness-min brightness-min]
-                :r1g2 [brightness-min brightness-mid]
-                :r1g3 [brightness-min brightness-max]
-                :r2g0 [brightness-mid brightness-off]
-                :r2g1 [brightness-mid brightness-min]
-                :r2g2 [brightness-mid brightness-mid]
-                :r2g3 [brightness-mid brightness-max]
-                :r3g0 [brightness-max brightness-off]
-                :r3g1 [brightness-max brightness-min]
-                :r3g2 [brightness-max brightness-mid]
-                :r3g3 [brightness-max brightness-max]
-                })
-
-(defn board->colors [board]
-  (into [] (map #(into [] (map color-map %)) board)))
 
 (defn send-redgreen!
   "Render the given red/green values to the row/col of receiver."
@@ -53,46 +23,43 @@
   (let [[red green] (color-map color)]
     (send-redgreen! receiver row col red green)))
 
+(defn send-colors!
+  [receiver colors]
+  (doseq [[r row-colors] (enumerate colors)
+          [c [red green]] (enumerate row-colors)]
+    (send-redgreen! receiver r c red green)))
+
 (defn send-board!
   "Render the given board to the given reciever."
   [receiver board]
-  (debug "Sending board: " board)
-  (let [board-colors (board->colors board)]
-    (debug "board colors " board-colors)
-    (doseq [[r row-colors] (enumerate board-colors)
-            [c [red green]] (enumerate row-colors)]
-      (debug "board.send: r=" r ", c=" c ", red=" red ", green=" green ", receiver=" receiver)
-      (send-redgreen! receiver r c red green))))
+  (send-colors! receiver (board->colors board)))
 
+(defn buffering-on?
+  [app]
+  (not= (app :buffer) buffer-none))
+
+;; To make this work with subwatch I would need to modify subwatch to also pass
+;; in the full old/new values instead of just the sub parts, right?
 (defn- render-board
-  [[old-app new-app]]
-  (debug "rendering board")
-  (let [old-board (old-app :board)
-        new-board (new-app :board)
-        new-receiver (new-app :receiver)]
-    (when (not= old-board new-board)
-      (send-board! new-receiver new-board)
-      (when (buffering-on? old-app)
-        (debug "sending flip buffer for old app!")
-        (send-flip-buffer! xyzzy)))))
+  [_k ref old-board new-board]
+  ;; I'm not sure that it's a good idea to deref
+  ;; new-app here, I should probably arrange for
+  ;; sub-watches to receive the whole thing as an additional
+  ;; parameter but for now...
+  (let [app @ref]
+    (let [new-receiver (app :receiver)
+          cur-buffer (app :buffer)]
+      (when (not= old-board new-board)
+        (send-board! new-receiver new-board)
+        (when (buffering-on? app)
+          (send-flip-buffer! new-receiver cur-buffer))))))
 
 (defn- render-buffer
   [[old-app new-app]]
-  (debug "rendering buffer")
   (let [old-buffer (old-app :buffer)
         new-buffer (new-app :buffer)]
     (when (not= old-buffer new-buffer)
-      (debug "changing buffer from " old-buffer " to " new-buffer)
       (send-buffer-msg! (new-app :receiver) new-buffer))))
-
-(defn- render-app
-  [key ref old-app new-app]
-  (debug "Rendering app.")
-  ;; I think we always want to render first then update buffer status but there
-  ;; may be some undesirable interplay here.
-  (-> [old-app new-app]
-      (render-board)
-      (render-buffer)))
 
 (defn buffering-on! [app]
   (swap! app #(assoc % :buffer buffer-0)))
@@ -100,19 +67,33 @@
 (defn buffering-off! [app]
   (swap! app #(assoc % :buffer buffer-none)))
 
+(defn- extend-key [key extra]
+  (let [key (name key)
+        extra (name extra)]
+    (keyword (str key "|" extra))))
+
 (defn make-app
-  ([] (make-app :app))
-  ([key] (let [[transmitter receiver] (select-transmitter-and-receiver)]
-           (make-app key transmitter receiver)))
+  ([]
+     (make-app :app))
+  ([key]
+     (let [[transmitter receiver] (select-transmitter-and-receiver)]
+       (make-app key transmitter receiver)))
   ([key transmitter receiver]
+     (when (nil? transmitter)
+       (throw (Exception. (str "invalid transmitter " transmitter))))
+     (when (nil? receiver)
+       (throw (Exception. (str "invalid receiver " receiver))))
      (let [app (atom {:transmitter transmitter
                       :receiver receiver
                       :line-in (midi-mk-full-device-key transmitter)
                       :line-out (midi-mk-full-device-key receiver)
                       :worker-pool (mk-pool)
                       :buffer buffer-none
-                      :board empty-board})]
-       (add-watch app key render-app)
+                      :board empty-board})
+           buffer-key (extend-key key :buffer)
+           board-key (extend-key key :board)]
+       (add-sub-watch app buffer-key [:buffer] render-buffer)
+       (add-sub-watch app board-key [:board] render-board)
        app)))
 
 (def ^:private primary-app (atom nil))
