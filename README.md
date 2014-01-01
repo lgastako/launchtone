@@ -4,10 +4,10 @@ A Clojure library for interacting with the Launchpad S from Overtone.
 
 ## Installation
 
-Add the following to your project.clj:
+Add the following to the dependencies in your project.clj:
 
 ```clojure
-[[launchtone "0.1.0"]]
+[launchtone "0.1.0"]
 ```
 
 ## Usage
