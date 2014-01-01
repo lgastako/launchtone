@@ -4,6 +4,8 @@
                                 get-color
                                 get-redgreen
                                 make-app
+                                set-board!
+                                swap-board!
                                 set-spot-color!]]))
 
 (deftest test-make-app
@@ -40,7 +42,6 @@
       (is (= :e (get-color mock-app 1 0)))
       (is (= :y (get-color mock-app 1 1))))))
 
-
 (deftest test-get-redgreen
   (testing "Getting redgreens"
     (let [mock-app (atom {:board [[:r :g] [:e :y]]})]
@@ -48,3 +49,15 @@
       (is (= [0 3] (get-redgreen mock-app 0 1)))
       (is (= [0 0] (get-redgreen mock-app 1 0)))
       (is (= [3 3] (get-redgreen mock-app 1 1))))))
+
+(deftest test-set-board!
+  (testing "Setting a new board"
+    (let [mock-app (atom {:board :old-board})]
+      (set-board! mock-app :new-board)
+      (is (= :new-board (@mock-app :board))))))
+
+(deftest test-swap-board!
+  (testing "Swapping a board"
+    (let [mock-app (atom {:board 0})]
+      (swap-board! mock-app inc)
+      (is (= 1 (@mock-app :board))))))

@@ -2,7 +2,7 @@
   (:require [overtone.config.log :as log]))
 
 (defn debug [& args]
-  (let [print-debugging true]
+  (let [print-debugging false]
     (if print-debugging
       (apply println args)
       (apply log/debug args))))

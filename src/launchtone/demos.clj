@@ -46,7 +46,7 @@
   (let [interval 500]
     (letfn [(finish-cycle! [cycle]
               (debug "finishing cycle: " cycle)
-              (if (< 0 (count cycle))
+              (if (pos? (count cycle))
                 (let [color (first cycle)
                       remaining (rest cycle)]
                   (debug "work to do, color=" color)
@@ -96,46 +96,34 @@
 
 (defn scrolled-row
   [row]
-;; TODO figure out idiom
-;;  (conj (rest row) (first row))
-  (concat (into [] (rest row)) [(first row)])
-  )
+  (concat (vec (rest row)) [(first row)]))
 
 (assert (= [:b :c :a] (scrolled-row [:a :b :c])))
 (scrolled-row [:a :b :c])
 
 (defn scrolled-board
   [board]
-  (debug "scrolled-board..." board)
-  (let [res (map scrolled-row board)]
-    (debug "sb.res " res)
-    res))
+  (map scrolled-row board))
 
 (defn scroll!
   [app]
-  (debug "scroll! " app)
-  (let [board (@app :board)]
-    (debug "board " board))
   (letfn [(updater [old-app]
-            (debug "in updater")
-            (let [res (update-in old-app [:board] scrolled-board)]
-              (debug "res " res)
-              res))]
-    (debug "in let")
+            (update-in old-app [:board] scrolled-board))]
     (swap! app updater)))
 
 (defn scroll-smiley!
   ([app]
-     ;; replace this with #(scroll! app) except that works
-     (letfn [(tmp-update []
-               (debug "tmp-update")
-               (scroll! app))]
-       (smiley! app)
-       (every app 100 #(scroll! app))))
+     (smiley! app)
+     (every app 100 #(scroll! app)))
   ([]
      (with-app scroll-smiley!)))
 
+(defn scroll-xmas-tree!
+  ([app]
+     (xmas-tree! app)
+     (every app 100 #(scroll! app)))
+  ([]
+     (with-app scroll-xmas-tree!)))
+
 (defn -main []
-  (debug "main beginning...")
-  (xmas-tree!)
-  (debug "main ending..."))
+  (xmas-tree!))

@@ -112,6 +112,13 @@
 (defn set-board! [app board]
   (swap! app assoc-board board))
 
+(defn swap-board! [app f]
+  (debug "wtf!!")
+  (dosync
+   (let [old-board (@app :board)
+         new-board (f old-board)]
+     (swap! app assoc-board new-board))))
+
 (defn set-spot-color! [app r c color]
   (let [board (@app :board)
         row (board r)
@@ -120,15 +127,23 @@
     (swap! app assoc-board new-board)))
 
 (defn handle-button-event [app f event-type]
+  (debug "installing handle-button-event")
   (fn [m]
+    (debug "firing handle-button-event")
     (let [[row col] (note->point (m :note))]
       (f row col event-type m))))
 
 (defn on-button-down [app f key]
-  (on-event [:midi :note-on] (handle-button-event app f :down) key))
+  (debug "attached on-button-down for key " key)
+  (on-event [:midi :note-on]
+            (handle-button-event app f :down)
+            key))
 
 (defn on-button-up [app f key]
-  (on-event [:midi :note-off] (handle-button-event app f :up) key))
+  (debug "attached on-button-up")
+  (on-event [:midi :note-off]
+            (handle-button-event app f :up)
+            key))
 
 (def on-button on-button-up)
 

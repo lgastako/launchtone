@@ -10,7 +10,7 @@
   [note]
   (let [col (bit-and-not note 0xfff0)
         row (bit-shift-right note 0x04)]
-    [col row]))
+    [row col]))
 
 (defn colors->velocity
   "Convert color to the appropriate velocity for the Launchpad."

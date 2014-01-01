@@ -14,10 +14,10 @@
 (deftest test-note->point
   (testing "note->point"
     (is (= [0 0] (note->point 0)))
-    (is (= [1 0] (note->point 1)))
-    (is (= [0 1] (note->point 16)))
+    (is (= [0 1] (note->point 1)))
+    (is (= [1 0] (note->point 16)))
     (is (= [1 1] (note->point 17)))
-    (is (= [0 2] (note->point 32)))
+    (is (= [2 0] (note->point 32)))
     (is (= [2 2] (note->point 34)))))
 
 (deftest test-colors->velocity
